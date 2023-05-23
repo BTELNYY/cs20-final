@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs20-final-server", "cs20-final\cs20-final-server.csproj", "{7785CA4A-741D-4E7F-9544-0A195E598043}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cs20-final-server", "cs20-final\cs20-final-server.csproj", "{7785CA4A-741D-4E7F-9544-0A195E598043}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs20-final-library", "cs20-final-library\cs20-final-library.csproj", "{4245EB71-10DE-4E17-BAE6-D99BE3B663AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cs20-final-library", "cs20-final-library\cs20-final-library.csproj", "{4245EB71-10DE-4E17-BAE6-D99BE3B663AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs20-final-client-test", "cs20-final-client-test\cs20-final-client-test.csproj", "{34B749EE-5011-47B2-8FE4-0780B8BC9C14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{4245EB71-10DE-4E17-BAE6-D99BE3B663AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4245EB71-10DE-4E17-BAE6-D99BE3B663AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4245EB71-10DE-4E17-BAE6-D99BE3B663AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34B749EE-5011-47B2-8FE4-0780B8BC9C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34B749EE-5011-47B2-8FE4-0780B8BC9C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34B749EE-5011-47B2-8FE4-0780B8BC9C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34B749EE-5011-47B2-8FE4-0780B8BC9C14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
