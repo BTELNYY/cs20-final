@@ -6,7 +6,8 @@ namespace cs20_final_library
 {
     public class Packet
     {
-        public virtual uint MaxSize { get; } = 4096;
+        public static int MaxSizePreset = 4096;
+        public virtual uint MaxSize { get; } = (uint)MaxSizePreset;
         public virtual uint PacketID { get; internal set; }
 
         public virtual byte[] GetAsBytes()
@@ -42,13 +43,7 @@ namespace cs20_final_library
 
         public static byte[] OverwriteArrayValue(int start, byte[] array, byte[] insert)
         {
-            int counter = 0;
-            while(start <= insert.Length)
-            {
-                array[start] = insert[counter];
-                counter++;
-                start++;
-            }
+            Array.Copy(insert, 0, array, start, insert.Length);
             return array;
         }
 
