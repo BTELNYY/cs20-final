@@ -5,13 +5,15 @@ using System.Text;
 using cs20_final_library;
 using cs20_final_library.Packets;
 
-namespace cs20_final_server;
+namespace cs20_final;
 
 public class Program
 {
     //http://csharp.net-informations.com/communications/csharp-multi-threaded-server-socket.htm
 
     public static Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
+
+    static Thread ConsoleThread = new(ConsoleHandler.HandleCommands);
 
     public static void Main(string[] args)
     {
@@ -23,6 +25,8 @@ public class Program
         serverSocket.Start();
         Console.WriteLine("Server Started");
 
+        ConsoleThread.Start();
+
         counter = 0;
         while (true)
         {
@@ -31,7 +35,8 @@ public class Program
             Console.WriteLine("Client connected. ID: " + counter.ToString());
             Client client = new Client();
             client.clientID = counter;
-            client.StartClient(clientSocket, counter);
+            var source = new CancellationTokenSource();
+            client.StartClient(clientSocket, counter, source.Token, source);
             clients.Add(counter, client);
         }
 
@@ -45,12 +50,17 @@ public class Program
     {
         TcpClient clientSocket = new();
         public uint clientID = 0;
-        public void StartClient(TcpClient inClientSocket, uint clientNum)
+        Thread clientThread;
+        CancellationToken threadToken;
+        CancellationTokenSource tokenSource;
+        public void StartClient(TcpClient inClientSocket, uint clientNum, CancellationToken token, CancellationTokenSource source)
         {
             this.clientSocket = inClientSocket;
             this.clientID = clientNum;
-            Thread ctThread = new(HandleClient);
-            ctThread.Start();
+            threadToken = token;
+            tokenSource = source;
+            clientThread = new(HandleClient);
+            clientThread.Start();
         }
 
         public NetworkStream GetStream()
@@ -60,6 +70,11 @@ public class Program
 
         public void Send(Packet p)
         {
+            if (!IsConnected())
+            {
+                Utility.WriteLineColor("Cannot send packet: Socket not connected!", ConsoleColor.Red);
+                return;
+            }
             byte[] packet = p.GetAsBytes();
             Console.WriteLine($"Sending packet. Length: {packet.Length}");
             NetworkStream networkStream = GetStream();
@@ -69,13 +84,31 @@ public class Program
 
         public bool IsConnected()
         {
+            if(clientSocket is null)
+            {
+                return false;
+            }
             return clientSocket.Connected;
+        }
+
+        public void Kick(DisconnectReason reason)
+        {
+            Send(new DisconnectPacket(reason));
+            Console.WriteLine($"Disconnecting client {clientID}.");
+            DestroyClient();
         }
 
         public void DestroyClient()
         {
+            if(IsConnected())
+            {
+                clientSocket.Close();
+            }
             clients.Remove(clientID);
             clientSocket = null;
+            tokenSource.Cancel();
+            clientThread.Join();
+            tokenSource.Cancel();
         }
 
         private void HandlePacket(uint ID, byte[] data)
@@ -84,22 +117,39 @@ public class Program
             {
                 case 1:
                     //reply to client
-                    Send(new PingPacket() { CompileTime = Utility.GetUnixTimestamp() });
+                    PingPacket? p = Utility.GetPacketFromBytes(data) as PingPacket;
+                    if (p != null && p.Reply)
+                    {
+                        Send(new PingPacket() { CompileTime = Utility.GetUnixTimestamp(), Reply = false});
+                    }
+                    break;
+                case 2:
+                    if (IsConnected())
+                    {
+                        Console.WriteLine($"Client with ID {clientID} has requested disconnect.");
+                        clientSocket.Close();
+                        DestroyClient();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Client with ID {clientID} requested disconnected but socket is already closed.");
+                        DestroyClient();
+                    }
+                    break;
+                default:
+                    Send(new DisconnectPacket(DisconnectReason.BadPacket));
+                    Console.WriteLine($"Disconnecting client {clientID} for bad packets.");
+                    DestroyClient();
                     break;
             }
         }
 
         private void HandleClient()
         {
-            int requestCount = 0;
             byte[] bytesFrom = new byte[Packet.MaxSizePreset];
-            string dataFromClient = "";
-            byte[] sendBytes = { };
-            string serverResponse = "";
-            string rCount = "";
-            requestCount = 0;
+            int requestCount = 0;
 
-            while (true)
+            while (!tokenSource.IsCancellationRequested)
             {
                 try
                 {
@@ -119,18 +169,11 @@ public class Program
                         Console.WriteLine($"Read data! Length: {count}, ID: {ID}");
                         HandlePacket(ID, bytesFrom);
                     }
-                    /*
-                    rCount = Convert.ToString(requestCount);
-                    serverResponse = "Server to clinet(" + clNo + ") " + rCount;
-                    sendBytes = Encoding.ASCII.GetBytes(serverResponse);
-                    networkStream.Write(sendBytes, 0, sendBytes.Length);
-                    networkStream.Flush();
-                    Console.WriteLine(" >> " + serverResponse);
-                    */
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(" >> " + ex.ToString());
+                    Console.WriteLine($"Disconnecting client({clientID}) due to error. Error: " + ex.Message);
+                    Kick(DisconnectReason.GeneralError);
                 }
             }
             return;

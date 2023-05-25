@@ -56,9 +56,40 @@ namespace cs20_final_library
                     return Packet.GetFromBytes(array);
                 case 1:
                     return PingPacket.GetFromBytes(array);
+                case 2:
+                    return DisconnectPacket.GetFromBytes(array);
                 default: 
                     return Packet.GetFromBytes(array);
             }
         }
+
+        public static DisconnectReason GetReason(uint ID)
+        {
+            try
+            {
+                return (DisconnectReason)ID;
+            }
+            catch
+            {
+                return DisconnectReason.Unknown;
+            }
+        }
+
+        public static void WriteLineColor(string message, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+    }
+    public enum DisconnectReason
+    {
+        Unknown = -1,
+        None = 0,
+        BadPacket = 1,
+        AuthError = 2,
+        HandshakeError = 3,
+        VersionMismatch = 4,
+        GeneralError = 5,
     }
 }
