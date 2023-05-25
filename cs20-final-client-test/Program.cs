@@ -12,6 +12,9 @@ public class Program
 {
     static System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
     static NetworkStream serverStream;
+
+    public static HandshakeState handshakeState = HandshakeState.Disonnected;
+    public static string Version { get; } = "1.0.0";
     static byte[] bytesFrom = new byte[Packet.MaxSizePreset];
     public static void Main(string[] args)
     {
@@ -40,6 +43,9 @@ public class Program
         {
             clientSocket.Connect(host, port);
             Utility.WriteLineColor("Connected.", ConsoleColor.Green);
+            handshakeState = HandshakeState.Connected;
+            Console.WriteLine("Checking version...");
+            Send(new VersionPacket(Version));
         }catch(Exception e)
         {
             Console.WriteLine("Failed to connect to server. " + e.Message, ConsoleColor.Red);
@@ -99,10 +105,12 @@ public class Program
                 DisconnectPacket? disconnectPacket = Utility.GetPacketFromBytes(data) as DisconnectPacket;
                 if(disconnectPacket != null)
                 {
-                    Console.WriteLine($"Disconnected from Server: {Utility.GetReason(disconnectPacket.DisconnectReason)}");
+                    Utility.WriteLineColor($"Disconnected from Server: {Utility.GetReason(disconnectPacket.DisconnectReason)}", ConsoleColor.Red);
                     Disconnect();
                 }
                 break;
+            case 3:
+                HandleHandshake(ID, data); break;
             default:
                 Send(new DisconnectPacket(DisconnectReason.BadPacket));
                 Console.WriteLine("Bad packet recieved, disconnecting. (Is your version mismatched?)");
@@ -110,6 +118,32 @@ public class Program
                 break;
         }
     }
+
+    public static void HandleHandshake(uint ID, byte[] data) 
+    {
+        switch (ID)
+        {
+            case 3:
+                VersionPacket p = VersionPacket.GetFromBytes(data);
+                if (handshakeState == HandshakeState.Connected)
+                {
+                    handshakeState = HandshakeState.GotVersion;
+                    ushort[] ver = Utility.GetUshortsFromVersionString(Version);
+                    if (ver[0] != p.VersionMajor || ver[1] != p.VersionMinor || ver[2] != p.VersionPatch)
+                    {
+                        Disconnect();
+                    }
+                    else
+                    {
+                        //Send(new VersionPacket(Version));
+                        Utility.WriteLineColor("Version check passed.", ConsoleColor.Green);
+                        handshakeState = HandshakeState.SentVersion;
+                    }
+                }
+                break;
+        }
+    }
+
 
     public static void Disconnect()
     {

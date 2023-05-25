@@ -81,6 +81,16 @@ namespace cs20_final_library
             Console.WriteLine(message);
             Console.ResetColor();
         }
+
+        public static ushort[] GetUshortsFromVersionString(string version)
+        {
+            ushort[] shortver = { 1, 0, 0 };
+            string[] strings = version.Split('.');
+            shortver[0] = ushort.Parse(strings[0]);
+            shortver[1] = ushort.Parse(strings[1]);
+            shortver[2] = ushort.Parse(strings[2]);
+            return shortver;
+        }
     }
     public enum DisconnectReason
     {
@@ -91,16 +101,17 @@ namespace cs20_final_library
         HandshakeError = 3,
         VersionMismatch = 4,
         GeneralError = 5,
+        UnexpectedPacket = 6,
     }
 
     public enum HandshakeState
     {
         Unknown = -1,
-        Connected = 0,
-        SentVersionToClient = 1,
-        GotVersionFromClient = 2,
-        GotEncryptionRequestFromClient = 3,
-        SentEncryptionRequestToClient = 4,
+        Disonnected = 0,
+        Connected = 1,
+        SentVersion = 2,
+        GotVersion = 3,
+        GotEncryptionRequest = 4,
+        SentEncryptionRequest = 5,
     }
-
 }

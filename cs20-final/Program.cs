@@ -10,6 +10,8 @@ namespace cs20_final;
 public class Program
 {
     //http://csharp.net-informations.com/communications/csharp-multi-threaded-server-socket.htm
+    public static string Version { get; } = "1.0.0";
+
 
     public static Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
 
@@ -137,6 +139,9 @@ public class Program
                         DestroyClient();
                     }
                     break;
+                case 3:
+                    HandleHandshake(ID, data); 
+                    break;
                 default:
                     Send(new DisconnectPacket(DisconnectReason.BadPacket));
                     Console.WriteLine($"Disconnecting client {clientID} for bad packets.");
@@ -144,6 +149,32 @@ public class Program
                     break;
             }
         }
+
+        private void HandleHandshake(uint ID, byte[] data)
+        {
+            switch(ID) 
+            { 
+                case 3:
+                    VersionPacket p = VersionPacket.GetFromBytes(data);
+                    if(handshakeState == HandshakeState.Connected)
+                    {
+                        handshakeState = HandshakeState.GotVersion;
+                        ushort[] ver = Utility.GetUshortsFromVersionString(Version);
+                        if (ver[0] != p.VersionMajor || ver[1] != p.VersionMinor || ver[2] != p.VersionPatch)
+                        {
+                            Kick(DisconnectReason.VersionMismatch);
+                        }
+                        else
+                        {
+                            Send(new VersionPacket(Version));
+                            handshakeState = HandshakeState.SentVersion;
+                        }
+                    }
+                    break;
+            }
+        }
+
+
 
         private void HandleClient()
         {
