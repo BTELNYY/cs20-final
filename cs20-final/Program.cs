@@ -49,6 +49,7 @@ public class Program
     public class Client
     {
         TcpClient clientSocket = new();
+        public HandshakeState handshakeState = HandshakeState.Connected;
         public uint clientID = 0;
         Thread clientThread;
         CancellationToken threadToken;

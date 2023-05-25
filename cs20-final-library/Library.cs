@@ -85,11 +85,22 @@ namespace cs20_final_library
     public enum DisconnectReason
     {
         Unknown = -1,
-        None = 0,
+        Custom = 0,
         BadPacket = 1,
         AuthError = 2,
         HandshakeError = 3,
         VersionMismatch = 4,
         GeneralError = 5,
     }
+
+    public enum HandshakeState
+    {
+        Unknown = -1,
+        Connected = 0,
+        SentVersionToClient = 1,
+        GotVersionFromClient = 2,
+        GotEncryptionRequestFromClient = 3,
+        SentEncryptionRequestToClient = 4,
+    }
+
 }
