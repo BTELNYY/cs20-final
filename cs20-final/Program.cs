@@ -97,8 +97,14 @@ public class Program
         public void Kick(DisconnectReason reason)
         {
             Send(new DisconnectPacket(reason));
-            Console.WriteLine($"Disconnecting client {clientID}.");
+            Console.WriteLine($"Disconnecting client {clientID}. With Reason: {reason.ToString()}");
             DestroyClient();
+        }
+
+        public void Kick(string reason)
+        {
+            Send(new DisconnectPacket(reason));
+            Console.WriteLine($"Disconnecting client {clientID}. With reason: {reason}");
         }
 
         public void DestroyClient()
