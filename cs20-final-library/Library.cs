@@ -113,5 +113,7 @@ namespace cs20_final_library
         GotVersion = 3,
         GotEncryptionRequest = 4,
         SentEncryptionRequest = 5,
+        GotPlayerData = 6,
+        SentPlayerData = 7,
     }
 }

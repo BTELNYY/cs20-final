@@ -12,6 +12,7 @@ public class Program
 {
     static System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
     static NetworkStream serverStream;
+    static Encryption encryption;
 
     public static HandshakeState handshakeState = HandshakeState.Disonnected;
     public static string Version { get; } = "1.0.0";
@@ -35,20 +36,20 @@ public class Program
         { 
             if(!int.TryParse(portstring, out int parsedport))
             {
-                Console.WriteLine("Bad port, using 8888");
+                Log.Info("Using 8888 as port!");
             }
         }
-        Console.WriteLine($"Connecting to {host}:{port}");
+        Log.Info($"Connecting to {host}:{port}");
         try
         {
             clientSocket.Connect(host, port);
-            Utility.WriteLineColor("Connected.", ConsoleColor.Green);
+            Log.Success("Connected.");
             handshakeState = HandshakeState.Connected;
-            Console.WriteLine("Checking version...");
+            Log.Info("Checking Version...");
             Send(new VersionPacket(Version));
         }catch(Exception e)
         {
-            Console.WriteLine("Failed to connect to server. " + e.Message, ConsoleColor.Red);
+            Log.Error("Failed to connect to server: " + e.Message);
             return;
         }
         try
@@ -65,7 +66,7 @@ public class Program
         }catch (Exception ex)
         {
             pingThread.Interrupt();
-            Console.WriteLine(ex.ToString());
+            Log.Error(ex.ToString());
         }
     }
     
@@ -73,7 +74,7 @@ public class Program
     {
         if (!IsConnected())
         {
-            Console.WriteLine("Can't Send packet, not connected!");
+            Log.Error("Can't send packet, not connected!");
         }
         else
         {
@@ -102,18 +103,25 @@ public class Program
                 }
                 break;
             case 2:
-                DisconnectPacket? disconnectPacket = Utility.GetPacketFromBytes(data) as DisconnectPacket;
-                if(disconnectPacket != null)
+                DisconnectPacket disconnectPacket = DisconnectPacket.GetFromBytes(data);
+                if(Utility.GetReason(disconnectPacket.DisconnectReason) == DisconnectReason.Custom)
                 {
-                    Utility.WriteLineColor($"Disconnected from Server: {Utility.GetReason(disconnectPacket.DisconnectReason)}", ConsoleColor.Red);
+                    Log.Error("Disconnected from server: Custom - " +  disconnectPacket.CustomDisconnectReaon);
+                    Disconnect();
+                }
+                else
+                {
+                    Log.Error("Disconnected from Server: " + Utility.GetReason(disconnectPacket.DisconnectReason));
                     Disconnect();
                 }
                 break;
             case 3:
                 HandleHandshake(ID, data); break;
+            case 4:
+                HandleHandshake(ID, data); break;
             default:
                 Send(new DisconnectPacket(DisconnectReason.BadPacket));
-                Console.WriteLine("Bad packet recieved, disconnecting. (Is your version mismatched?)");
+                Log.Error("Bad packet! Disconnecting.");
                 Disconnect();
                 break;
         }
@@ -136,10 +144,14 @@ public class Program
                     else
                     {
                         //Send(new VersionPacket(Version));
-                        Utility.WriteLineColor("Version check passed.", ConsoleColor.Green);
+                        Log.Success("Version check passed.");
                         handshakeState = HandshakeState.SentVersion;
                     }
                 }
+                break;
+            case 4:
+                EncryptionPacket encryptionPacket = EncryptionPacket.GetFromBytes(data);
+                
                 break;
         }
     }
@@ -149,12 +161,12 @@ public class Program
     {
         if (IsConnected()) 
         {
-            Console.WriteLine("Disconnecting!");
+            Log.Info("Disconnecting!");
             clientSocket.Close();
         }
         else
         {
-            Console.WriteLine("Socket already closed. Disonnect Complete.");
+            Log.Warning("Called void::Disconect() on closed socket.");
         }
     }
 

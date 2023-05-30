@@ -75,7 +75,7 @@ public class Program
         {
             if (!IsConnected())
             {
-                Utility.WriteLineColor("Cannot send packet: Socket not connected!", ConsoleColor.Red);
+                Log.Error("Can't send packet. Socket not connected.");
                 return;
             }
             byte[] packet = p.GetAsBytes();
@@ -97,14 +97,14 @@ public class Program
         public void Kick(DisconnectReason reason)
         {
             Send(new DisconnectPacket(reason));
-            Console.WriteLine($"Disconnecting client {clientID}. With Reason: {reason.ToString()}");
+            Log.Info($"Disconnecting client {clientID}. With Reason: {reason}");
             DestroyClient();
         }
 
         public void Kick(string reason)
         {
             Send(new DisconnectPacket(reason));
-            Console.WriteLine($"Disconnecting client {clientID}. With reason: {reason}");
+            Log.Info($"Disconnecting client {clientID}. With reason: {reason}");
         }
 
         public void DestroyClient()
@@ -135,13 +135,13 @@ public class Program
                 case 2:
                     if (IsConnected())
                     {
-                        Console.WriteLine($"Client with ID {clientID} has requested disconnect.");
+                        Log.Info($"Client with ID {clientID} has requested disconnect.");
                         clientSocket.Close();
                         DestroyClient();
                     }
                     else
                     {
-                        Console.WriteLine($"Client with ID {clientID} requested disconnected but socket is already closed.");
+                        Log.Info($"Client with ID {clientID} requested disconnected but socket is already closed.");
                         DestroyClient();
                     }
                     break;
@@ -150,7 +150,7 @@ public class Program
                     break;
                 default:
                     Send(new DisconnectPacket(DisconnectReason.BadPacket));
-                    Console.WriteLine($"Disconnecting client {clientID} for bad packets.");
+                    Log.Warning($"Disconnecting client {clientID} for bad packets.");
                     DestroyClient();
                     break;
             }
@@ -193,7 +193,7 @@ public class Program
                 {
                     if (!IsConnected())
                     {
-                        Console.WriteLine("Client Disconnected: Socket Closed.", ConsoleColor.Red);
+                        Log.Error("Client Disconnected: Socket Closed.");
                         DestroyClient();
                         break;
                     }
@@ -204,13 +204,13 @@ public class Program
                         int count = networkStream.Read(bytesFrom, 0, Packet.MaxSizePreset);
                         uint ID = BitConverter.ToUInt32(bytesFrom, 0);
                         int IDint = Convert.ToInt32(ID);
-                        Console.WriteLine($"Read data! Length: {count}, ID: {ID}");
+                        Log.Info($"Read data! Length: {count}, ID: {ID}");
                         HandlePacket(ID, bytesFrom);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Disconnecting client({clientID}) due to error. Error: " + ex.Message);
+                    Log.Info($"Disconnecting client({clientID}) due to error. Error: " + ex.Message);
                     Kick(DisconnectReason.GeneralError);
                 }
             }
