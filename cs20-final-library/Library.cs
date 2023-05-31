@@ -27,12 +27,30 @@ namespace cs20_final_library
 
     public static class Utility
     {
-        public static Dictionary<uint, Type> PacketDefs = new();
-
-        public static void DefinePackets()
+        public static T[] Extract<T>(T[] source, int fromIndex, int length)
         {
-            PacketDefs.Add(0, typeof(Packet));
-            PacketDefs.Add(1, typeof(PingPacket));
+            if (null == source)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            else if (fromIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(fromIndex), "From Index must be non-negative");
+            }
+            else if (length < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative");
+            }
+
+
+            if (fromIndex >= source.Length || length == 0)
+                return new T[0];
+
+            T[] result = new T[Math.Min(length, source.Length - fromIndex)];
+
+            Array.Copy(source, fromIndex, result, 0, result.Length);
+
+            return result;
         }
 
         public static long GetUnixTimestamp()
@@ -45,22 +63,6 @@ namespace cs20_final_library
         {
             Array.Copy(insert, 0, array, start, insert.Length);
             return array;
-        }
-
-        public static Packet GetPacketFromBytes(byte[] array)
-        {
-            uint ID = BitConverter.ToUInt32(array, 0);
-            switch (ID)
-            {
-                case 0:
-                    return Packet.GetFromBytes(array);
-                case 1:
-                    return PingPacket.GetFromBytes(array);
-                case 2:
-                    return DisconnectPacket.GetFromBytes(array);
-                default: 
-                    return Packet.GetFromBytes(array);
-            }
         }
 
         public static DisconnectReason GetReason(uint ID)
@@ -111,7 +113,7 @@ namespace cs20_final_library
         Connected = 1,
         SentVersion = 2,
         GotVersion = 3,
-        GotEncryptionRequest = 4,
-        SentEncryptionRequest = 5,
+        GotPlayerData = 4,
+        SentPlayerData = 5,
     }
 }

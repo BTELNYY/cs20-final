@@ -11,8 +11,6 @@ namespace cs20_final_client_test;
 public class Program
 {
     static System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-    static NetworkStream serverStream;
-
     public static HandshakeState handshakeState = HandshakeState.Disonnected;
     public static string Version { get; } = "1.0.0";
     static byte[] bytesFrom = new byte[Packet.MaxSizePreset];
@@ -95,14 +93,14 @@ public class Program
         {
             case 1:
                 //reply to client
-                PingPacket? p = Utility.GetPacketFromBytes(data) as PingPacket;
+                PingPacket p = PingPacket.GetFromBytes(data);
                 if (p != null && p.Reply)
                 {
                     Send(new PingPacket() { CompileTime = Utility.GetUnixTimestamp(), Reply = false });
                 }
                 break;
             case 2:
-                DisconnectPacket? disconnectPacket = Utility.GetPacketFromBytes(data) as DisconnectPacket;
+                DisconnectPacket disconnectPacket = DisconnectPacket.GetFromBytes(data);
                 if(disconnectPacket != null)
                 {
                     Utility.WriteLineColor($"Disconnected from Server: {Utility.GetReason(disconnectPacket.DisconnectReason)}", ConsoleColor.Red);
