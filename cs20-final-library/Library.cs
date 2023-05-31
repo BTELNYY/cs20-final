@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System;
 using cs20_final_library.Packets;
+using System.Text;
 
 namespace cs20_final_library
 {
@@ -47,20 +48,14 @@ namespace cs20_final_library
             return array;
         }
 
-        public static Packet GetPacketFromBytes(byte[] array)
+        public static byte[] GetStringAsBytes(string input)
         {
-            uint ID = BitConverter.ToUInt32(array, 0);
-            switch (ID)
-            {
-                case 0:
-                    return Packet.GetFromBytes(array);
-                case 1:
-                    return PingPacket.GetFromBytes(array);
-                case 2:
-                    return DisconnectPacket.GetFromBytes(array);
-                default: 
-                    return Packet.GetFromBytes(array);
-            }
+            return Encoding.ASCII.GetBytes(input);
+        }
+
+        public static string GetBytesAsString(byte[] bytes)
+        {
+            return Encoding.ASCII.GetString(bytes);
         }
 
         public static DisconnectReason GetReason(uint ID)
@@ -102,6 +97,7 @@ namespace cs20_final_library
         VersionMismatch = 4,
         GeneralError = 5,
         UnexpectedPacket = 6,
+        HandshakeFailed = 7,
     }
 
     public enum HandshakeState

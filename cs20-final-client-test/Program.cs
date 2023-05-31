@@ -11,8 +11,8 @@ namespace cs20_final_client_test;
 public class Program
 {
     static System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-    static NetworkStream serverStream;
     static Encryption encryption;
+    static bool UsingEncryption = false;
 
     public static HandshakeState handshakeState = HandshakeState.Disonnected;
     public static string Version { get; } = "1.0.0";
@@ -59,6 +59,10 @@ public class Program
             {
                 NetworkStream networkStream = clientSocket.GetStream();
                 int count = networkStream.Read(bytesFrom, 0, Packet.MaxSizePreset);
+                if (UsingEncryption)
+                {
+                    bytesFrom = Utility.GetStringAsBytes(encryption.Decrypt(bytesFrom));
+                }
                 uint ID = BitConverter.ToUInt32(bytesFrom, 0);
                 int IDint = Convert.ToInt32(ID);
                 HandlePacket(ID, bytesFrom);
@@ -80,6 +84,10 @@ public class Program
         {
             NetworkStream serverStream = clientSocket.GetStream();
             byte[] packet = p.GetAsBytes();
+            if (UsingEncryption)
+            {
+                packet = Utility.GetStringAsBytes(encryption.EncryptToOther(packet));
+            }
             serverStream.Write(packet, 0, Packet.MaxSizePreset);
             serverStream.Flush();
         }
@@ -96,7 +104,7 @@ public class Program
         {
             case 1:
                 //reply to client
-                PingPacket? p = Utility.GetPacketFromBytes(data) as PingPacket;
+                PingPacket p = PingPacket.GetFromBytes(data);
                 if (p != null && p.Reply)
                 {
                     Send(new PingPacket() { CompileTime = Utility.GetUnixTimestamp(), Reply = false });
@@ -146,12 +154,31 @@ public class Program
                         //Send(new VersionPacket(Version));
                         Log.Success("Version check passed.");
                         handshakeState = HandshakeState.SentVersion;
+                        EncryptionPacket packet = new EncryptionPacket();
+                        packet.EncryptionType = 1;
+                        Encryption enc = new Encryption();
+                        encryption = enc;
+                        packet.PublicKey = enc._publicKey;
+                        Send(packet);
+                        handshakeState = HandshakeState.SentEncryptionRequest;
                     }
                 }
                 break;
             case 4:
                 EncryptionPacket encryptionPacket = EncryptionPacket.GetFromBytes(data);
-                
+                if(handshakeState == HandshakeState.SentEncryptionRequest)
+                {
+                    if(encryptionPacket.KeyLength > 0)
+                    {
+                        encryption.PublicKeyOfOther = encryptionPacket.PublicKey;
+                        Log.Debug(encryption.PublicKeyOfOther);
+                        UsingEncryption = true;
+                    }
+                    else
+                    {
+                        Log.Warning("Server sent empty public key!");
+                    }
+                }
                 break;
         }
     }
