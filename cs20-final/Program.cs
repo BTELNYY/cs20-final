@@ -50,11 +50,9 @@ public class Program
 
     public class Client
     {
-        public bool UsingEncryption { get; private set; } = false;
         TcpClient clientSocket = new();
         public HandshakeState handshakeState = HandshakeState.Connected;
         public uint clientID = 0;
-        public Encryption encryption { get; private set; } = new();
         Thread clientThread;
         CancellationToken threadToken;
         CancellationTokenSource tokenSource;
@@ -77,14 +75,10 @@ public class Program
         {
             if (!IsConnected())
             {
-                Log.Error("Can't send packet. Socket not connected.");
+                Utility.WriteLineColor("Cannot send packet: Socket not connected!", ConsoleColor.Red);
                 return;
             }
             byte[] packet = p.GetAsBytes();
-            if (UsingEncryption)
-            {
-                packet = Utility.GetStringAsBytes(encryption.EncryptToOther(packet));
-            }
             Console.WriteLine($"Sending packet. Length: {packet.Length}");
             NetworkStream networkStream = GetStream();
             networkStream.Write(packet, 0, Packet.MaxSizePreset);
@@ -103,14 +97,14 @@ public class Program
         public void Kick(DisconnectReason reason)
         {
             Send(new DisconnectPacket(reason));
-            Log.Info($"Disconnecting client {clientID}. With Reason: {reason}");
+            Console.WriteLine($"Disconnecting client {clientID}. With Reason: {reason.ToString()}");
             DestroyClient();
         }
 
         public void Kick(string reason)
         {
             Send(new DisconnectPacket(reason));
-            Log.Info($"Disconnecting client {clientID}. With reason: {reason}");
+            Console.WriteLine($"Disconnecting client {clientID}. With reason: {reason}");
         }
 
         public void DestroyClient()
@@ -132,7 +126,7 @@ public class Program
             {
                 case 1:
                     //reply to client
-                    PingPacket p = PingPacket.GetFromBytes(data);
+                    PingPacket? p = Utility.GetPacketFromBytes(data) as PingPacket;
                     if (p != null && p.Reply)
                     {
                         Send(new PingPacket() { CompileTime = Utility.GetUnixTimestamp(), Reply = false});
@@ -141,25 +135,22 @@ public class Program
                 case 2:
                     if (IsConnected())
                     {
-                        Log.Info($"Client with ID {clientID} has requested disconnect.");
+                        Console.WriteLine($"Client with ID {clientID} has requested disconnect.");
                         clientSocket.Close();
                         DestroyClient();
                     }
                     else
                     {
-                        Log.Info($"Client with ID {clientID} requested disconnected but socket is already closed.");
+                        Console.WriteLine($"Client with ID {clientID} requested disconnected but socket is already closed.");
                         DestroyClient();
                     }
                     break;
                 case 3:
                     HandleHandshake(ID, data); 
                     break;
-                case 4:
-                    HandleHandshake(ID, data);
-                    break;
                 default:
                     Send(new DisconnectPacket(DisconnectReason.BadPacket));
-                    Log.Warning($"Disconnecting client {clientID} for bad packets.");
+                    Console.WriteLine($"Disconnecting client {clientID} for bad packets.");
                     DestroyClient();
                     break;
             }
@@ -186,35 +177,6 @@ public class Program
                         }
                     }
                     break;
-                case 4:
-                    EncryptionPacket encryptionPacket = EncryptionPacket.GetFromBytes(data);
-                    if(encryptionPacket.KeyLength > 0 )
-                    {
-                        Log.Info($"Client {clientID} requested Encryption!");
-                        encryption.PublicKeyOfOther = encryptionPacket.PublicKey;
-                        handshakeState = HandshakeState.GotEncryptionRequest;
-                        EncryptionPacket packet = new();
-                        packet.PublicKey = encryption._publicKey;
-                        packet.EncryptionType = 1;
-                        Send(packet);
-                        handshakeState = HandshakeState.SentEncryptionRequest;
-                        UsingEncryption = true;
-                        Log.Info($"Client {clientID} encrypted.");
-                        Log.Debug(encryption.PublicKeyOfOther);
-                    }
-                    else
-                    {
-                        handshakeState = HandshakeState.GotEncryptionRequest;
-                        Log.Warning($"Client {clientID} didn't provide their public key. sending servers...");
-                        EncryptionPacket packet = new();
-                        packet.PublicKey = encryption._publicKey;
-                        packet.EncryptionType = 1;
-                        Send(packet);
-                        handshakeState = HandshakeState.SentEncryptionRequest;
-                        UsingEncryption = true;
-                        Log.Info($"Client {clientID} encrypted.");
-                    }
-                    break;
             }
         }
 
@@ -231,7 +193,7 @@ public class Program
                 {
                     if (!IsConnected())
                     {
-                        Log.Error("Client Disconnected: Socket Closed.");
+                        Console.WriteLine("Client Disconnected: Socket Closed.", ConsoleColor.Red);
                         DestroyClient();
                         break;
                     }
@@ -240,19 +202,15 @@ public class Program
                         requestCount = requestCount + 1;
                         NetworkStream networkStream = GetStream();
                         int count = networkStream.Read(bytesFrom, 0, Packet.MaxSizePreset);
-                        if (UsingEncryption)
-                        {
-                            bytesFrom = Utility.GetStringAsBytes(encryption.Decrypt(bytesFrom));
-                        }
                         uint ID = BitConverter.ToUInt32(bytesFrom, 0);
                         int IDint = Convert.ToInt32(ID);
-                        Log.Info($"Read data! Length: {count}, ID: {ID}");
+                        Console.WriteLine($"Read data! Length: {count}, ID: {ID}");
                         HandlePacket(ID, bytesFrom);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log.Info($"Disconnecting client({clientID}) due to error. Error: " + ex.Message);
+                    Console.WriteLine($"Disconnecting client({clientID}) due to error. Error: " + ex.Message);
                     Kick(DisconnectReason.GeneralError);
                 }
             }
