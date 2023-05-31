@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cs20-final-server", "cs20-f
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cs20-final-library", "cs20-final-library\cs20-final-library.csproj", "{4245EB71-10DE-4E17-BAE6-D99BE3B663AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs20-final-client-test", "cs20-final-client-test\cs20-final-client-test.csproj", "{34B749EE-5011-47B2-8FE4-0780B8BC9C14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cs20-final-client-test", "cs20-final-client-test\cs20-final-client-test.csproj", "{34B749EE-5011-47B2-8FE4-0780B8BC9C14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chess", "Chess\Chess.csproj", "{F8A71410-E0FD-4361-BC2B-7262D2C74741}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{34B749EE-5011-47B2-8FE4-0780B8BC9C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34B749EE-5011-47B2-8FE4-0780B8BC9C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34B749EE-5011-47B2-8FE4-0780B8BC9C14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8A71410-E0FD-4361-BC2B-7262D2C74741}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8A71410-E0FD-4361-BC2B-7262D2C74741}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8A71410-E0FD-4361-BC2B-7262D2C74741}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8A71410-E0FD-4361-BC2B-7262D2C74741}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
