@@ -1,6 +1,8 @@
 ﻿using System.Security.Cryptography;
 using System;
 using cs20_final_library.Packets;
+using System.Drawing;
+using System.Reflection.Metadata.Ecma335;
 
 namespace cs20_final_library
 {
@@ -115,5 +117,103 @@ namespace cs20_final_library
         GotVersion = 3,
         GotPlayerData = 4,
         SentPlayerData = 5,
+    }
+
+    public enum UserPermissionState
+    {
+        ChangeName,
+        SendChat,
+        KickOthers,
+        MuteOthers,
+    }
+
+    public struct UserPermissions
+    {
+        public Dictionary<UserPermissionState, bool> Permissions { get; private set; } = new();
+        
+        public void AddPermission(UserPermissionState state, bool value)
+        {
+            if (Permissions.ContainsKey(state))
+            {
+                Log.Warning("Tried to add duplicate permission!");
+            }
+            else
+            {
+                Permissions.Add(state, value);
+            }
+        }
+
+        public void RemovePermission(UserPermissionState state)
+        {
+            if (Permissions.ContainsKey(state))
+            {
+                Log.Warning("Tried to remove non-existent permission!");
+            }
+            else
+            {
+                Permissions.Remove(state);
+            }
+        }
+
+        public bool HasPermission(UserPermissionState state)
+        {
+            if (!Permissions.ContainsKey(state))
+            {
+                return false;
+            }
+            else
+            {
+                return Permissions[state];
+            }
+        }
+
+        public byte[] GetAsBytes()
+        {
+            List<byte> bytes = new();
+            foreach (var item in Permissions.Keys)
+            {
+                UserPermissionState state = item;
+                bool value = Permissions[item];
+                int stateid = (int)state;
+                foreach(byte statebyte in BitConverter.GetBytes(stateid))
+                {
+                    bytes.Add(statebyte);
+                }
+                foreach(byte valuebyte in BitConverter.GetBytes(value))
+                {
+                    bytes.Add(valuebyte);
+                }
+            }
+            return bytes.ToArray();
+        }
+
+        public static UserPermissions GetFromBytes(byte[] data)
+        {
+            UserPermissions perms = new();
+            int size = 5;
+            var keypairs = data.Select((s, i) => data.Skip(i * size).Take(size)).Where(a => a.Any());
+            foreach(var pair in keypairs)
+            {
+                int stateid = BitConverter.ToInt32(data, 0);
+                bool value = BitConverter.ToBoolean(data, 4);
+                UserPermissionState permissions = (UserPermissionState)stateid;
+                if (perms.Permissions.ContainsKey(permissions))
+                {
+                    Log.Warning("Permissions Duplicated!");
+                }
+                else
+                {
+                    perms.Permissions.Add(permissions, value);
+                }
+            }
+            return perms;
+        }
+        public UserPermissions()
+        {
+            Permissions.Add(UserPermissionState.ChangeName, true);
+            Permissions.Add(UserPermissionState.SendChat, true);
+            Permissions.Add(UserPermissionState.KickOthers, false);
+            Permissions.Add(UserPermissionState.MuteOthers, false);
+        }
     }
 }

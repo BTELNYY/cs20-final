@@ -11,12 +11,17 @@ namespace cs20_final
 {
     public class Client
     {
-        TcpClient clientSocket = new();
         public HandshakeState handshakeState = HandshakeState.Connected;
         public uint clientID = 0;
+        public Player player;
+
+
+
+        TcpClient clientSocket = new();
         Thread clientThread;
         CancellationToken threadToken;
         CancellationTokenSource tokenSource;
+
         public void StartClient(TcpClient inClientSocket, uint clientNum, CancellationToken token, CancellationTokenSource source)
         {
             this.clientSocket = inClientSocket;
@@ -109,6 +114,9 @@ namespace cs20_final
                 case 3:
                     HandleHandshake(ID, data);
                     break;
+                case 5:
+                    HandleHandshake(ID, data);
+                    break;
                 default:
                     Send(new DisconnectPacket(DisconnectReason.BadPacket));
                     Console.WriteLine($"Disconnecting client {clientID} for bad packets.");
@@ -138,7 +146,21 @@ namespace cs20_final
                         }
                     }
                     break;
+                case 4:
+                    PlayerDataPacket playerDataPacket = PlayerDataPacket.GetFromBytes(data);
+                    playerDataPacket = SanitizePlayerData(playerDataPacket);
+                    playerDataPacket.PermissionState = new();
+                    playerDataPacket.PlayerID = clientID;
+                    Send(playerDataPacket);
+                    //blah blah verify permissions and name, etc.
+
+                    break;
             }
+        }
+
+        public static PlayerDataPacket SanitizePlayerData(PlayerDataPacket packet)
+        {
+            return packet;
         }
 
 

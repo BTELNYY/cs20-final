@@ -12,6 +12,8 @@ namespace cs20_final_library.Packets
         public uint PlayerID { get; set; } = 0;
         public uint NameLength { get; private set; } = 0;
         public string PlayerName { get; set; } = "";
+        public uint PermissionStateLength { get; private set; } = 0;
+        public UserPermissions PermissionState { get; set; } = new();
 
         public PlayerDataPacket() { }
 
@@ -28,8 +30,13 @@ namespace cs20_final_library.Packets
             Utility.OverwriteArrayValue(0, bytes, BitConverter.GetBytes(PacketID));
             Utility.OverwriteArrayValue(4, bytes, BitConverter.GetBytes(PlayerID));
             byte[] strbytes = Encoding.ASCII.GetBytes(PlayerName);
-            bytes = Utility.OverwriteArrayValue(8, bytes, BitConverter.GetBytes(strbytes.Length));
+            NameLength = (uint)strbytes.Length;
+            bytes = Utility.OverwriteArrayValue(8, bytes, BitConverter.GetBytes(NameLength));
             bytes = Utility.OverwriteArrayValue(12, bytes, strbytes);
+            byte[] permissionstate = PermissionState.GetAsBytes();
+            PermissionStateLength = (uint)permissionstate.Length;
+            bytes = Utility.OverwriteArrayValue(((int)NameLength + 12), bytes, BitConverter.GetBytes(PermissionStateLength));
+            bytes = Utility.OverwriteArrayValue(((int)NameLength + 16), bytes, permissionstate);
             return bytes;
         }
 
@@ -41,6 +48,8 @@ namespace cs20_final_library.Packets
             p.NameLength = BitConverter.ToUInt32(bytes, 8);
             byte[] strbytes = Utility.Extract(bytes, 12, (int)p.NameLength);
             p.PlayerName = Encoding.ASCII.GetString(strbytes);
+            p.PermissionStateLength = BitConverter.ToUInt32(bytes, (int)p.NameLength + 12);
+            byte[] permissionbytes = Utility.Extract(bytes, 16 + (int)p.NameLength, (int)p.PermissionStateLength);
             return p;
         }
     }
