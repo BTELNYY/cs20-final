@@ -21,12 +21,24 @@ namespace cs20_final
 
         public void StartClient(TcpClient inClientSocket, uint clientNum, CancellationToken token, CancellationTokenSource source)
         {
-            this.clientSocket = inClientSocket;
-            this.clientID = clientNum;
+            clientSocket = inClientSocket;
+            clientID = clientNum;
             threadToken = token;
             tokenSource = source;
             clientThread = new(HandleClient);
             clientThread.Start();
+        }
+
+        public string GetName()
+        {
+            if(player is null)
+            {
+                return "null";
+            }
+            else
+            {
+                return player.Name;
+            }
         }
 
         public NetworkStream GetStream()
@@ -42,7 +54,7 @@ namespace cs20_final
                 return;
             }
             byte[] packet = p.GetAsBytes();
-            Console.WriteLine($"Sending packet. Length: {packet.Length}");
+            //Console.WriteLine($"Sending packet. Length: {packet.Length}");
             NetworkStream networkStream = GetStream();
             networkStream.Write(packet, 0, Packet.MaxSizePreset);
             networkStream.Flush();
@@ -143,16 +155,31 @@ namespace cs20_final
                         }
                     }
                     break;
-                case 4:
+                case 5:
                     handshakeState = HandshakeState.GotPlayerData;
                     PlayerDataPacket playerDataPacket = PlayerDataPacket.GetFromBytes(data);
-                    playerDataPacket = SanitizePlayerData(playerDataPacket);
-                    playerDataPacket.PermissionState = new();
-                    playerDataPacket.PlayerID = clientID;
+                    if(player is null)
+                    {
+                        //player first connects
+                        player = new(this, playerDataPacket.PlayerName);
+                        playerDataPacket = SanitizePlayerData(playerDataPacket);
+                        playerDataPacket.PermissionState = new();
+                        playerDataPacket.PlayerID = clientID;
+                        player.Name = playerDataPacket.PlayerName;
+                        Log.Info($"Client {clientID} registered as player {player.Name}");
+                    }
+                    else
+                    {
+                        playerDataPacket = SanitizePlayerData(playerDataPacket);
+                        //player modify self
+                        if (player.UserPermissions.HasFlag(UserFlag.ChangeName, out byte result) && result == 1)
+                        {
+                            Log.Info($"Player {player.Name} changed name to {playerDataPacket.PlayerName}");
+                            player.UpdateOnServer(playerDataPacket);
+                        }
+                    }
                     Send(playerDataPacket);
                     handshakeState = HandshakeState.SentPlayerData;
-                    //blah blah verify permissions and name, etc.
-
                     break;
             }
         }
@@ -169,7 +196,7 @@ namespace cs20_final
             byte[] bytesFrom = new byte[Packet.MaxSizePreset];
             int requestCount = 0;
 
-            while (!tokenSource.IsCancellationRequested)
+            while (tokenSource != null && !tokenSource.IsCancellationRequested)
             {
                 try
                 {
@@ -186,7 +213,7 @@ namespace cs20_final
                         int count = networkStream.Read(bytesFrom, 0, Packet.MaxSizePreset);
                         uint ID = BitConverter.ToUInt32(bytesFrom, 0);
                         int IDint = Convert.ToInt32(ID);
-                        Console.WriteLine($"Read data! Length: {count}, ID: {ID}");
+                        //Console.WriteLine($"Read data! Length: {count}, ID: {ID}");
                         HandlePacket(ID, bytesFrom);
                     }
                 }

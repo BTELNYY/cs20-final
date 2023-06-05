@@ -12,7 +12,7 @@ namespace cs20_final_client_test
     {
         public string Name { get; set; } = "";
         public UserFlags UserFlags { get; set; } = new();
-        public uint ClientID { get; private set; } = 0;
+        public uint ClientID { get; set; } = 0;
 
         public void UpdateOnClient(PlayerDataPacket packet)
         {

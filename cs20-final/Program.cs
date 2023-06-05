@@ -6,15 +6,11 @@ using cs20_final_library;
 using cs20_final_library.Packets;
 
 namespace cs20_final;
-
 public class Program
 {
     //http://csharp.net-informations.com/communications/csharp-multi-threaded-server-socket.htm
     public static string Version { get; } = "1.0.0";
-
-
     public static Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
-
     static Thread ConsoleThread = new(ConsoleHandler.HandleCommands);
 
     public static void Main(string[] args)
@@ -22,12 +18,9 @@ public class Program
         TcpListener serverSocket = new TcpListener(IPAddress.Parse("127.0.0.1"), 8888);
         TcpClient clientSocket = default;
         uint counter = 0;
-
         serverSocket.Start();
         Console.WriteLine("Server Started");
-
         ConsoleThread.Start();
-
         counter = 0;
         while (true)
         {

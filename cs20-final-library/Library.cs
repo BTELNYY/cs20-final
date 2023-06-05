@@ -125,6 +125,7 @@ namespace cs20_final_library
         SendChat,
         KickOthers,
         MuteOthers,
+        IsFurry
     }
 
     public struct UserFlags
@@ -217,6 +218,7 @@ namespace cs20_final_library
             Flags.Add(UserFlag.SendChat, 1);
             Flags.Add(UserFlag.KickOthers, 0);
             Flags.Add(UserFlag.MuteOthers, 0);
+            Flags.Add(UserFlag.IsFurry, 0);
         }
 
         public static bool operator ==(UserFlags right, UserFlags left)
