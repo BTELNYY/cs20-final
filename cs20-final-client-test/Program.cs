@@ -109,6 +109,8 @@ public class Program
                 break;
             case 3:
                 HandleHandshake(ID, data); break;
+            case 5: 
+                HandleHandshake(ID, data); break;
             default:
                 Send(new DisconnectPacket(DisconnectReason.BadPacket));
                 Console.WriteLine("Bad packet recieved, disconnecting. (Is your version mismatched?)");
@@ -138,6 +140,10 @@ public class Program
                         handshakeState = HandshakeState.SentVersion;
                     }
                 }
+                break;
+            case 5:
+                PlayerDataPacket playerDataPacket = PlayerDataPacket.GetFromBytes(data);
+
                 break;
         }
     }

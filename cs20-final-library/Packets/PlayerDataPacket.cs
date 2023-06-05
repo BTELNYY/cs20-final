@@ -13,7 +13,7 @@ namespace cs20_final_library.Packets
         public uint NameLength { get; private set; } = 0;
         public string PlayerName { get; set; } = "";
         public uint PermissionStateLength { get; private set; } = 0;
-        public UserPermissions PermissionState { get; set; } = new();
+        public UserFlags PermissionState { get; set; } = new();
 
         public PlayerDataPacket() { }
 

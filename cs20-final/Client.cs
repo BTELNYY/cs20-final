@@ -13,14 +13,11 @@ namespace cs20_final
     {
         public HandshakeState handshakeState = HandshakeState.Connected;
         public uint clientID = 0;
-        public Player player;
-
-
-
+        public ServerPlayer? player;
         TcpClient clientSocket = new();
-        Thread clientThread;
+        Thread? clientThread;
         CancellationToken threadToken;
-        CancellationTokenSource tokenSource;
+        CancellationTokenSource? tokenSource;
 
         public void StartClient(TcpClient inClientSocket, uint clientNum, CancellationToken token, CancellationTokenSource source)
         {
@@ -147,11 +144,13 @@ namespace cs20_final
                     }
                     break;
                 case 4:
+                    handshakeState = HandshakeState.GotPlayerData;
                     PlayerDataPacket playerDataPacket = PlayerDataPacket.GetFromBytes(data);
                     playerDataPacket = SanitizePlayerData(playerDataPacket);
                     playerDataPacket.PermissionState = new();
                     playerDataPacket.PlayerID = clientID;
                     Send(playerDataPacket);
+                    handshakeState = HandshakeState.SentPlayerData;
                     //blah blah verify permissions and name, etc.
 
                     break;

@@ -119,7 +119,7 @@ namespace cs20_final_library
         SentPlayerData = 5,
     }
 
-    public enum UserPermissionState
+    public enum UserFlag
     {
         ChangeName,
         SendChat,
@@ -127,53 +127,55 @@ namespace cs20_final_library
         MuteOthers,
     }
 
-    public struct UserPermissions
+    public struct UserFlags
     {
-        public Dictionary<UserPermissionState, bool> Permissions { get; private set; } = new();
+        public Dictionary<UserFlag, byte> Flags { get; private set; } = new();
         
-        public void AddPermission(UserPermissionState state, bool value)
+        public void AddFlag(UserFlag state, byte value)
         {
-            if (Permissions.ContainsKey(state))
+            if (Flags.ContainsKey(state))
             {
-                Log.Warning("Tried to add duplicate permission!");
+                Log.Warning("Tried to add duplicate flag!");
             }
             else
             {
-                Permissions.Add(state, value);
+                Flags.Add(state, value);
             }
         }
 
-        public void RemovePermission(UserPermissionState state)
+        public void RemoveFlag(UserFlag state)
         {
-            if (Permissions.ContainsKey(state))
+            if (Flags.ContainsKey(state))
             {
-                Log.Warning("Tried to remove non-existent permission!");
+                Log.Warning("Tried to remove non-existent flag!");
             }
             else
             {
-                Permissions.Remove(state);
+                Flags.Remove(state);
             }
         }
 
-        public bool HasPermission(UserPermissionState state)
+        public bool HasFlag(UserFlag flag, out byte state)
         {
-            if (!Permissions.ContainsKey(state))
+            if (!Flags.ContainsKey(flag))
             {
+                state = 0;
                 return false;
             }
             else
             {
-                return Permissions[state];
+                state = Flags[flag];
+                return true;
             }
         }
 
         public byte[] GetAsBytes()
         {
             List<byte> bytes = new();
-            foreach (var item in Permissions.Keys)
+            foreach (var item in Flags.Keys)
             {
-                UserPermissionState state = item;
-                bool value = Permissions[item];
+                UserFlag state = item;
+                byte value = Flags[item];
                 int stateid = (int)state;
                 foreach(byte statebyte in BitConverter.GetBytes(stateid))
                 {
@@ -187,33 +189,45 @@ namespace cs20_final_library
             return bytes.ToArray();
         }
 
-        public static UserPermissions GetFromBytes(byte[] data)
+        public static UserFlags GetFromBytes(byte[] data)
         {
-            UserPermissions perms = new();
+            UserFlags perms = new();
             int size = 5;
             var keypairs = data.Select((s, i) => data.Skip(i * size).Take(size)).Where(a => a.Any());
             foreach(var pair in keypairs)
             {
                 int stateid = BitConverter.ToInt32(data, 0);
-                bool value = BitConverter.ToBoolean(data, 4);
-                UserPermissionState permissions = (UserPermissionState)stateid;
-                if (perms.Permissions.ContainsKey(permissions))
+                byte value = data[4];
+                UserFlag permissions = (UserFlag)stateid;
+                if (perms.Flags.ContainsKey(permissions))
                 {
                     Log.Warning("Permissions Duplicated!");
                 }
                 else
                 {
-                    perms.Permissions.Add(permissions, value);
+                    perms.Flags.Add(permissions, value);
                 }
             }
             return perms;
         }
-        public UserPermissions()
+        public UserFlags()
         {
-            Permissions.Add(UserPermissionState.ChangeName, true);
-            Permissions.Add(UserPermissionState.SendChat, true);
-            Permissions.Add(UserPermissionState.KickOthers, false);
-            Permissions.Add(UserPermissionState.MuteOthers, false);
+            Flags.Clear();
+            Flags.Add(UserFlag.ChangeName, 1);
+            Flags.Add(UserFlag.SendChat, 1);
+            Flags.Add(UserFlag.KickOthers, 0);
+            Flags.Add(UserFlag.MuteOthers, 0);
         }
+
+        public static bool operator ==(UserFlags right, UserFlags left)
+        {
+            return Equals(right, left);
+        }
+
+        public static bool operator !=(UserFlags right, UserFlags left)
+        {
+            return !Equals(right, left);
+        }
+
     }
 }
