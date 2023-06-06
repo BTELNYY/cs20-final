@@ -12,7 +12,6 @@ public class Program
     public static string Version { get; } = "1.0.0";
     public static Dictionary<uint, Client> clients = new Dictionary<uint, Client>();
     static Thread ConsoleThread = new(ConsoleHandler.HandleCommands);
-
     public static void Main(string[] args)
     {
         TcpListener serverSocket = new TcpListener(IPAddress.Parse("127.0.0.1"), 8888);

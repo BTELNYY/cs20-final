@@ -16,7 +16,7 @@ namespace cs20_final_client_test
         public static HandshakeState handshakeState = HandshakeState.Disonnected;
         static byte[] bytesFrom = new byte[Packet.MaxSizePreset];
         public static ClientPlayer? Player;
-
+        static Thread ChatThread = new(ClientConsoleHandler.HandleChat);
         public static string Host = "127.0.0.1";
         public static int Port = 8888;
         public static string PlayerName = "Player";
@@ -31,6 +31,7 @@ namespace cs20_final_client_test
                 handshakeState = HandshakeState.Connected;
                 Console.WriteLine("Checking version...");
                 Send(new VersionPacket(Program.Version));
+                ChatThread.Start();
             }
             catch (Exception e)
             {
@@ -100,6 +101,10 @@ namespace cs20_final_client_test
                     HandleHandshake(ID, data); break;
                 case 5:
                     HandleHandshake(ID, data); break;
+                case 6:
+                    ChatPacket chatPacket = ChatPacket.GetFromBytes(data);
+                    Log.Info($"[CHAT] {chatPacket.Name}: {chatPacket.Message}");
+                    break;
                 default:
                     Send(new DisconnectPacket(DisconnectReason.BadPacket));
                     Console.WriteLine("Bad packet recieved, disconnecting. (Is your version mismatched?)");

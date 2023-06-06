@@ -126,6 +126,34 @@ namespace cs20_final
                 case 5:
                     HandleHandshake(ID, data);
                     break;
+                case 6:
+                    if(player is null)
+                    {
+                        Send(new DisconnectPacket("Sent chat before player data handshake!"));
+                        Log.Info($"Disconnecting client {clientID} for attemping to send chat before handshake.");
+                        DestroyClient();
+                        break;
+                    }
+                    if(!player.UserPermissions.HasFlag(UserFlag.SendChat, out byte state) || state == 0)
+                    {
+                        Log.Info($"Client {clientID} has no permission to send chat messages.");
+                        break;
+                    }
+                    ChatPacket chatPacket = ChatPacket.GetFromBytes(data);
+                    //Sanitize message
+                    string fixedMessage = chatPacket.Message;
+                    if(player.Name != chatPacket.Name)
+                    {
+                        Log.Error("Client attempted to forge player name when sending chat!");
+                        chatPacket = new(player.Name, fixedMessage);
+                    }
+                    chatPacket = new(chatPacket.Name, fixedMessage);
+                    Log.Info($"[CHAT] {chatPacket.Name}: {fixedMessage}");
+                    foreach(var client in Program.clients.Values)
+                    {
+                        client.Send(chatPacket);
+                    }
+                    break;
                 default:
                     Send(new DisconnectPacket(DisconnectReason.BadPacket));
                     Console.WriteLine($"Disconnecting client {clientID} for bad packets.");
