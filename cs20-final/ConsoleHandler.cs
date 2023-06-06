@@ -26,9 +26,9 @@ namespace cs20_final
                 {
                     case "list":
                         Utility.WriteLineColor("Currently connected sockets", ConsoleColor.White);
-                        foreach (var clientid in Program.clients.Keys)
+                        foreach (var clientid in Program.clients)
                         {
-                            Console.WriteLine($"ID: {clientid}");
+                            Console.WriteLine($"ID: {clientid.Value.clientID} Name: {clientid.Value.GetName()}");
                         }
                         break;
                     case "kick":

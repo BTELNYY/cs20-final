@@ -5,9 +5,3 @@ IF version NOT Server Version then disconnect client
 Server Sends version packet -> Client checks
 Client chooses to either stop the connection or continue
 
-Client sends encryption packet, if using Async encryption sends public key
-if server has async encryption, server sends public key back
-
-Test encryption, server comes up with random value only known to server, encrypts and sends to client.
-client decrypts and reads number, then using encryption or not sends it back to server, 
-if the number does not match the servers expected number, disconnect client due to bad encryption
