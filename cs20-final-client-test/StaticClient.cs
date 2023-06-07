@@ -103,7 +103,7 @@ namespace cs20_final_client_test
                     HandleHandshake(ID, data); break;
                 case 6:
                     ChatPacket chatPacket = ChatPacket.GetFromBytes(data);
-                    Log.Info($"[CHAT] {chatPacket.Name}: {chatPacket.Message}");
+                    ClientConsoleHandler.HandleServerChat(chatPacket);
                     break;
                 default:
                     Send(new DisconnectPacket(DisconnectReason.BadPacket));

@@ -128,6 +128,12 @@ namespace cs20_final_library
         IsFurry
     }
 
+    public enum ChatSource
+    {
+        User,
+        System,
+    }
+
     public struct UserFlags
     {
         public Dictionary<UserFlag, byte> Flags { get; private set; } = new();
@@ -211,6 +217,18 @@ namespace cs20_final_library
             }
             return perms;
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is UserFlags flags &&
+                   EqualityComparer<Dictionary<UserFlag, byte>>.Default.Equals(Flags, flags.Flags);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Flags);
+        }
+
         public UserFlags()
         {
             Flags.Clear();

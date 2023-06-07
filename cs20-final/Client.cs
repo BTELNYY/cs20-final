@@ -11,6 +11,12 @@ namespace cs20_final
 {
     public class Client
     {
+        public static EventHandler<ServerPlayer>? PlayerConnected;
+        public static EventHandler<DisconnectReason>? PlayerDisconnected;
+        public static EventHandler<string>? PlayerDisconnectedCustom;
+
+
+
         public HandshakeState handshakeState = HandshakeState.Connected;
         public uint clientID = 0;
         public ServerPlayer? player;
@@ -74,12 +80,29 @@ namespace cs20_final
             Send(new DisconnectPacket(reason));
             Console.WriteLine($"Disconnecting client {clientID}. With Reason: {reason.ToString()}");
             DestroyClient();
+            if(PlayerDisconnected is null)
+            {
+                return;
+            }
+            else
+            {
+                PlayerDisconnected.Invoke(this, reason);
+            }
         }
 
         public void Kick(string reason)
         {
             Send(new DisconnectPacket(reason));
             Console.WriteLine($"Disconnecting client {clientID}. With reason: {reason}");
+            DestroyClient();
+            if(PlayerDisconnectedCustom is null)
+            {
+                return;
+            }
+            else
+            {
+                PlayerDisconnectedCustom.Invoke(this, reason);
+            }
         }
 
         public void DestroyClient()
@@ -88,7 +111,7 @@ namespace cs20_final
             {
                 clientSocket.Close();
             }
-            Program.clients.Remove(clientID);
+            Server.clients.Remove(clientID);
             clientSocket = null;
             tokenSource.Cancel();
             clientThread.Join();
@@ -149,13 +172,13 @@ namespace cs20_final
                     }
                     chatPacket = new(chatPacket.Name, fixedMessage);
                     Log.Info($"[CHAT] {chatPacket.Name}: {fixedMessage}");
-                    foreach(var client in Program.clients.Values)
+                    foreach(var client in Server.clients.Values)
                     {
                         client.Send(chatPacket);
                     }
                     break;
                 default:
-                    Send(new DisconnectPacket(DisconnectReason.BadPacket));
+                    Kick(DisconnectReason.BadPacket);
                     Console.WriteLine($"Disconnecting client {clientID} for bad packets.");
                     DestroyClient();
                     break;
@@ -195,6 +218,14 @@ namespace cs20_final
                         playerDataPacket.PlayerID = clientID;
                         player.Name = playerDataPacket.PlayerName;
                         Log.Info($"Client {clientID} registered as player {player.Name}");
+                        if(PlayerConnected is null)
+                        {
+                            
+                        }
+                        else
+                        {
+                            PlayerConnected.Invoke(this, player);
+                        }
                     }
                     else
                     {

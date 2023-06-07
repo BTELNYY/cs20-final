@@ -26,7 +26,7 @@ namespace cs20_final
                 {
                     case "list":
                         Utility.WriteLineColor("Currently connected sockets", ConsoleColor.White);
-                        foreach (var clientid in Program.clients)
+                        foreach (var clientid in Server.clients)
                         {
                             Console.WriteLine($"ID: {clientid.Value.clientID} Name: {clientid.Value.GetName()}");
                         }
@@ -34,9 +34,9 @@ namespace cs20_final
                     case "kick":
                         if(cmd.Length > 2 && uint.TryParse(cmd[1], out uint result) && uint.TryParse(cmd[2], out uint kickreason))
                         {
-                            if (Program.clients.ContainsKey(result))
+                            if (Server.clients.ContainsKey(result))
                             {
-                                Program.clients[result].Kick(Utility.GetReason(kickreason));
+                                Server.clients[result].Kick(Utility.GetReason(kickreason));
                             }
                         }
                         break;
