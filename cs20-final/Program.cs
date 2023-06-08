@@ -13,6 +13,8 @@ public class Program
     public static void Main(string[] args)
     {
         Client.PlayerConnected += EventHandler.OnJoin;
+        Client.PlayerDisconnected += EventHandler.OnLeave;
+        Log.Info("Starting server v" + Version + "...");
         Server.Init();
     }
 }

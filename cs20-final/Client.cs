@@ -12,9 +12,14 @@ namespace cs20_final
     public class Client
     {
         public static EventHandler<ServerPlayer>? PlayerConnected;
-        public static EventHandler<DisconnectReason>? PlayerDisconnected;
-        public static EventHandler<string>? PlayerDisconnectedCustom;
+        public static EventHandler<DisconnectStruct>? PlayerDisconnected;
 
+        public struct DisconnectStruct
+        {
+            public ServerPlayer Player;
+            public DisconnectReason DisconnectReason;
+            public string CustomDisconnectReason;
+        }
 
 
         public HandshakeState handshakeState = HandshakeState.Connected;
@@ -79,30 +84,50 @@ namespace cs20_final
         {
             Send(new DisconnectPacket(reason));
             Console.WriteLine($"Disconnecting client {clientID}. With Reason: {reason.ToString()}");
-            DestroyClient();
             if(PlayerDisconnected is null)
             {
                 return;
             }
             else
             {
-                PlayerDisconnected.Invoke(this, reason);
+                if(player is null)
+                {
+                    return;
+                }
+                DisconnectStruct dcstruct = new()
+                {
+                    Player = player,
+                    DisconnectReason = reason,
+                    CustomDisconnectReason = string.Empty,
+                };
+                PlayerDisconnected.Invoke(this, dcstruct);
             }
+            DestroyClient();
         }
 
         public void Kick(string reason)
         {
             Send(new DisconnectPacket(reason));
             Console.WriteLine($"Disconnecting client {clientID}. With reason: {reason}");
-            DestroyClient();
-            if(PlayerDisconnectedCustom is null)
+            if(PlayerDisconnected is null)
             {
                 return;
             }
             else
             {
-                PlayerDisconnectedCustom.Invoke(this, reason);
+                if (player is null)
+                {
+                    return;
+                }
+                DisconnectStruct dcstruct = new()
+                {
+                    Player = player,
+                    DisconnectReason = DisconnectReason.Custom,
+                    CustomDisconnectReason = string.Empty,
+                };
+                PlayerDisconnected.Invoke(this, dcstruct);
             }
+            DestroyClient();
         }
 
         public void DestroyClient()
@@ -164,14 +189,14 @@ namespace cs20_final
                     }
                     ChatPacket chatPacket = ChatPacket.GetFromBytes(data);
                     //Sanitize message
-                    string fixedMessage = chatPacket.Message;
-                    if(player.Name != chatPacket.Name)
+                    string fixedMessage = chatPacket.JSONPayload.Message;
+                    if(player.Name != chatPacket.JSONPayload.Name)
                     {
                         Log.Error("Client attempted to forge player name when sending chat!");
                         chatPacket = new(player.Name, fixedMessage);
                     }
-                    chatPacket = new(chatPacket.Name, fixedMessage);
-                    Log.Info($"[CHAT] {chatPacket.Name}: {fixedMessage}");
+                    chatPacket = new(chatPacket.JSONPayload.Name, fixedMessage);
+                    Log.Info($"[CHAT] {chatPacket.JSONPayload.Name}: {fixedMessage}");
                     foreach(var client in Server.clients.Values)
                     {
                         client.Send(chatPacket);
@@ -218,14 +243,6 @@ namespace cs20_final
                         playerDataPacket.PlayerID = clientID;
                         player.Name = playerDataPacket.PlayerName;
                         Log.Info($"Client {clientID} registered as player {player.Name}");
-                        if(PlayerConnected is null)
-                        {
-                            
-                        }
-                        else
-                        {
-                            PlayerConnected.Invoke(this, player);
-                        }
                     }
                     else
                     {
@@ -239,6 +256,10 @@ namespace cs20_final
                     }
                     Send(playerDataPacket);
                     handshakeState = HandshakeState.SentPlayerData;
+                    if (PlayerConnected != null)
+                    {
+                        PlayerConnected.Invoke(this, player);
+                    }
                     break;
             }
         }

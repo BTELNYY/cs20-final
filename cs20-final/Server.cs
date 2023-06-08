@@ -20,14 +20,15 @@ namespace cs20_final
             TcpClient clientSocket = default;
             uint counter = 0;
             serverSocket.Start();
-            Console.WriteLine("Server Started");
+            Log.Info("Accepting client connections.");
             ConsoleThread.Start();
             counter = 0;
+            Log.Info("Server ready.");
             while (true)
             {
                 counter += 1;
                 clientSocket = serverSocket.AcceptTcpClient();
-                Console.WriteLine("Client connected. ID: " + counter.ToString());
+                Log.Debug("Client connected. ID: " + counter.ToString());
                 Client client = new Client();
                 client.clientID = counter;
                 var source = new CancellationTokenSource();
@@ -39,7 +40,7 @@ namespace cs20_final
         public static void SendServerMessage(string message)
         {
             ChatPacket chatPacket = new("System", message, ChatSource.System);
-            Log.Debug(chatPacket.Message);
+            Log.Debug(chatPacket.Payload);
             foreach(var client in clients.Values)
             {
                 client.Send(chatPacket);

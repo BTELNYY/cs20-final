@@ -31,20 +31,17 @@ namespace cs20_final_client_test
             {
                 prefix += "[CHAT] ";
             }
-            if(packet.ChatSource == ChatSource.System)
-            {
-                prefix += "[SYSTEM] ";
-            }
             if (packet.IsPrivate)
             {
                 prefix += "[PRIVATE] ";
             }
-            if(packet.ChatSource == ChatSource.System) 
+            if (packet.ChatSource == ChatSource.System)
             {
-                Log.Info(prefix + ": " + packet.Message);
+                prefix += "[SYSTEM]";
+                Log.Info(prefix + ": " + packet.JSONPayload.Message);
                 return;
             }
-            Log.Info(prefix + packet.Name + ": " + packet.Message);
+            Log.Info(prefix + packet.JSONPayload.Name + ": " + packet.JSONPayload.Message);
         }
     }
 }
