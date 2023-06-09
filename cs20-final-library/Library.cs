@@ -31,6 +31,7 @@ namespace cs20_final_library
     {
         public static T[] Extract<T>(T[] source, int fromIndex, int length)
         {
+            //Thank you random stack overflow answer
             if (null == source)
             {
                 throw new ArgumentNullException(nameof(source));
@@ -43,16 +44,10 @@ namespace cs20_final_library
             {
                 throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative");
             }
-
-
             if (fromIndex >= source.Length || length == 0)
                 return new T[0];
-
             T[] result = new T[Math.Min(length, source.Length - fromIndex)];
-
             Array.Copy(source, fromIndex, result, 0, result.Length);
-
-
             return result;
         }
 
