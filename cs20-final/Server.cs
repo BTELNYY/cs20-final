@@ -40,7 +40,7 @@ namespace cs20_final
         public static void SendServerMessage(string message)
         {
             ChatPacket chatPacket = new("System", message, ChatSource.System);
-            Log.Debug(chatPacket.Payload);
+            //Log.Debug(chatPacket.Payload);
             foreach(var client in clients.Values)
             {
                 client.Send(chatPacket);

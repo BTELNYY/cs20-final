@@ -10,11 +10,13 @@ namespace cs20_final_library
     {
         public static int MaxSizePreset = 4096;
         public virtual uint MaxSize { get; } = (uint)MaxSizePreset;
-        public virtual uint PacketID { get; internal set; }
+        public virtual uint PacketID { get; internal set; } = 0;
 
         public virtual byte[] GetAsBytes()
         {
-            throw new InvalidDataException("Can't call this on Packet base class!");
+            byte[] bytes = new byte[MaxSizePreset];
+            Utility.OverwriteArrayValue(0, bytes, BitConverter.GetBytes(PacketID));
+            return bytes;
         }
 
         public static Packet GetFromBytes(byte[] bytes)
