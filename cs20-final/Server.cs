@@ -17,7 +17,7 @@ namespace cs20_final
         public static void Init()
         {
             TcpListener serverSocket = new TcpListener(IPAddress.Parse("127.0.0.1"), 8888);
-            TcpClient clientSocket = default;
+            TcpClient clientSocket;
             uint counter = 0;
             serverSocket.Start();
             Log.Info("Accepting client connections.");
@@ -46,6 +46,14 @@ namespace cs20_final
                 client.Send(chatPacket);
             }
             Log.Info($"[SYSTEM] {message}");
+        }
+
+        public static void SendPrivateServerMessage(Client client, string message)
+        {
+            ChatPacket chatPacket = new("System", client.GetName(), message, ChatSource.System);
+            //Log.Debug(chatPacket.Payload);
+            client.Send(chatPacket);
+            Log.Info($"[SYSTEM] [PRIVATE] Server -> {client.GetName()} {message}");
         }
     }
 }
