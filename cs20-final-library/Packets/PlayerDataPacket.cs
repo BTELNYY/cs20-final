@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,9 +13,10 @@ namespace cs20_final_library.Packets
         public override uint PacketID => 5;
         public uint PlayerID { get; set; } = 0;
         public uint NameLength { get; private set; } = 0;
+        public uint UserStateLength { get; private set; } = 0;
         public string PlayerName { get; set; } = "";
-        public uint PermissionStateLength { get; private set; } = 0;
-        public UserFlags PermissionState { get; set; } = new();
+        public string UserStateString { get; private set; } = "";
+        public UserFlags UserState { get; set; } = new();
 
         public PlayerDataPacket() { }
 
@@ -22,6 +25,8 @@ namespace cs20_final_library.Packets
             PlayerID = playerID;
             PlayerName = playerName;
             NameLength = (uint)Encoding.ASCII.GetBytes(PlayerName).Length;
+            UserStateString = JsonConvert.SerializeObject(UserState);
+            UserStateLength = (uint)Encoding.ASCII.GetBytes(UserStateString).Length;
         }
 
         public override byte[] GetAsBytes()
@@ -31,11 +36,13 @@ namespace cs20_final_library.Packets
             Utility.OverwriteArrayValue(4, bytes, BitConverter.GetBytes(PlayerID));
             byte[] strbytes = Encoding.ASCII.GetBytes(PlayerName);
             NameLength = (uint)strbytes.Length;
+            string json = JsonConvert.SerializeObject(UserState);
+            byte[] permissionstate = Encoding.ASCII.GetBytes(json);
+            UserStateLength = (uint)permissionstate.Length;
             bytes = Utility.OverwriteArrayValue(8, bytes, BitConverter.GetBytes(NameLength));
-            bytes = Utility.OverwriteArrayValue(12, bytes, strbytes);
-            byte[] permissionstate = PermissionState.GetAsBytes();
-            PermissionStateLength = (uint)permissionstate.Length;
-            bytes = Utility.OverwriteArrayValue(((int)NameLength + 12), bytes, BitConverter.GetBytes(PermissionStateLength));
+            bytes = Utility.OverwriteArrayValue(12, bytes, BitConverter.GetBytes(UserStateLength));
+            bytes = Utility.OverwriteArrayValue(16, bytes, strbytes);
+            //Log.Debug("GetAsBytes: " + json);
             bytes = Utility.OverwriteArrayValue(((int)NameLength + 16), bytes, permissionstate);
             return bytes;
         }
@@ -46,10 +53,13 @@ namespace cs20_final_library.Packets
             p.PacketID = BitConverter.ToUInt32(bytes, 0);
             p.PlayerID = BitConverter.ToUInt32(bytes, 4);
             p.NameLength = BitConverter.ToUInt32(bytes, 8);
-            byte[] strbytes = Utility.Extract(bytes, 12, (int)p.NameLength);
+            p.UserStateLength = BitConverter.ToUInt32(bytes, 12);
+            byte[] strbytes = Utility.Extract(bytes, 16, (int)p.NameLength);
             p.PlayerName = Encoding.ASCII.GetString(strbytes);
-            p.PermissionStateLength = BitConverter.ToUInt32(bytes, (int)p.NameLength + 12);
-            byte[] permissionbytes = Utility.Extract(bytes, 16 + (int)p.NameLength, (int)p.PermissionStateLength);
+            byte[] permissionbytes = Utility.Extract(bytes, 16 + (int)p.NameLength, (int)p.UserStateLength);
+            string json = Encoding.ASCII.GetString(permissionbytes);
+            //Log.Debug("GetFromBytes: " + json);
+            p.UserState = JsonConvert.DeserializeObject<UserFlags>(json);
             return p;
         }
     }

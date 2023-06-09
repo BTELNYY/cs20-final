@@ -52,6 +52,7 @@ namespace cs20_final_library
 
             Array.Copy(source, fromIndex, result, 0, result.Length);
 
+
             return result;
         }
 
@@ -174,48 +175,6 @@ namespace cs20_final_library
                 state = Flags[flag];
                 return true;
             }
-        }
-
-        public byte[] GetAsBytes()
-        {
-            List<byte> bytes = new();
-            foreach (var item in Flags.Keys)
-            {
-                UserFlag state = item;
-                byte value = Flags[item];
-                int stateid = (int)state;
-                foreach(byte statebyte in BitConverter.GetBytes(stateid))
-                {
-                    bytes.Add(statebyte);
-                }
-                foreach(byte valuebyte in BitConverter.GetBytes(value))
-                {
-                    bytes.Add(valuebyte);
-                }
-            }
-            return bytes.ToArray();
-        }
-
-        public static UserFlags GetFromBytes(byte[] data)
-        {
-            UserFlags perms = new();
-            int size = 5;
-            var keypairs = data.Select((s, i) => data.Skip(i * size).Take(size)).Where(a => a.Any());
-            foreach(var pair in keypairs)
-            {
-                int stateid = BitConverter.ToInt32(data, 0);
-                byte value = data[4];
-                UserFlag permissions = (UserFlag)stateid;
-                if (perms.Flags.ContainsKey(permissions))
-                {
-                    Log.Warning("Permissions Duplicated!");
-                }
-                else
-                {
-                    perms.Flags.Add(permissions, value);
-                }
-            }
-            return perms;
         }
 
         public override bool Equals(object? obj)

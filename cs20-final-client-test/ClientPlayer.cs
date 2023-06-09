@@ -17,7 +17,7 @@ namespace cs20_final_client_test
         public void UpdateOnClient(PlayerDataPacket packet)
         {
             Name = packet.PlayerName;
-            UserFlags = packet.PermissionState;
+            UserFlags = packet.UserState;
             ClientID = packet.PlayerID;
         }
     }

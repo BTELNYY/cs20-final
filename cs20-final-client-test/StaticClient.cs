@@ -135,7 +135,7 @@ namespace cs20_final_client_test
                             Send(new PlayerDataPacket()
                             {
                                 PlayerName = PlayerName,
-                                PermissionState = new(),
+                                UserState = new(),
                                 PlayerID = 0
                             });
                             Log.Info("Sending player data...");
@@ -151,7 +151,7 @@ namespace cs20_final_client_test
                         Player = new();
                     }
                     Player.Name = playerDataPacket.PlayerName;
-                    Player.UserFlags = playerDataPacket.PermissionState;
+                    Player.UserFlags = playerDataPacket.UserState;
                     Player.ClientID = playerDataPacket.PlayerID;
                     Log.Success("Player data exchange complete.");
                     break;

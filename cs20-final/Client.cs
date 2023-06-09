@@ -239,7 +239,7 @@ namespace cs20_final
                         //player first connects
                         player = new(this, playerDataPacket.PlayerName);
                         playerDataPacket = SanitizePlayerData(playerDataPacket);
-                        playerDataPacket.PermissionState = new();
+                        playerDataPacket.UserState = new();
                         playerDataPacket.PlayerID = clientID;
                         player.Name = playerDataPacket.PlayerName;
                         Log.Info($"Client {clientID} registered as player {player.Name}");

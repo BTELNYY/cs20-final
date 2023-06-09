@@ -38,7 +38,7 @@ namespace cs20_final
         public void UpdateOnServer(PlayerDataPacket packet)
         {
             Name = packet.PlayerName;
-            if(UserPermissions != packet.PermissionState)
+            if(UserPermissions != packet.UserState)
             {
                 Log.Warning("Client attempted to change UserFlags, either desync or an exploit attempt.");
                 PlayerClient.Kick("Attempted to modify UserFlags client side.");
@@ -51,7 +51,7 @@ namespace cs20_final
             {
                 PlayerID = PlayerClient.clientID,
                 PlayerName = Name,
-                PermissionState = UserPermissions
+                UserState = UserPermissions
             };
             PlayerClient.Send(playerDataPacket);
         }
