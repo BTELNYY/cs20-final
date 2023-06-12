@@ -40,7 +40,7 @@ namespace cs20_final_client_test
             }
             try
             {
-                //pingThread.Start();
+                pingThread.Start();
                 while (true)
                 {
                     NetworkStream networkStream = clientSocket.GetStream();
@@ -177,12 +177,12 @@ namespace cs20_final_client_test
         {
             while (true)
             {
+                Log.Debug("Sending ping packet!");
                 NetworkStream serverStream = clientSocket.GetStream();
                 PingPacket p = new();
                 p.CompileTime = Utility.GetUnixTimestamp();
-                byte[] packet = p.GetAsBytes();
-                serverStream.Write(packet, 0, Packet.MaxSizePreset);
-                serverStream.Flush();
+                p.Reply = true;
+                Send(p);
                 Thread.Sleep(1000);
             }
         }

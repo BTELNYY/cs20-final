@@ -149,6 +149,7 @@ namespace cs20_final
             {
                 case 1:
                     //reply to client
+                    //Log.Debug("Getting pinged from client!");
                     PingPacket p = PingPacket.GetFromBytes(data);
                     if (p != null && p.Reply)
                     {

@@ -11,39 +11,45 @@ namespace cs20_final
     {
         internal static void HandleCommands()
         {
-            Console.WriteLine("Accepting commands.");
-            while (true)
+            try
             {
-                Console.Write("> ");
-                string? input = Console.ReadLine();
-                if(string.IsNullOrEmpty(input))
+                Console.WriteLine("Accepting commands.");
+                while (true)
                 {
-                    Utility.WriteLineColor("Bad command.", ConsoleColor.Red);
-                    continue;
-                }
-                string[] cmd = input.Split(' ');
-                switch(cmd[0]) 
-                {
-                    case "list":
-                        Utility.WriteLineColor("Currently connected sockets", ConsoleColor.White);
-                        foreach (var clientid in Server.clients)
-                        {
-                            Console.WriteLine($"ID: {clientid.Value.clientID} Name: {clientid.Value.GetName()}");
-                        }
-                        break;
-                    case "kick":
-                        if(cmd.Length > 2 && uint.TryParse(cmd[1], out uint result) && uint.TryParse(cmd[2], out uint kickreason))
-                        {
-                            if (Server.clients.ContainsKey(result))
+                    Console.Write("> ");
+                    string? input = Console.ReadLine();
+                    if (string.IsNullOrEmpty(input))
+                    {
+                        Utility.WriteLineColor("Bad command.", ConsoleColor.Red);
+                        continue;
+                    }
+                    string[] cmd = input.Split(' ');
+                    switch (cmd[0])
+                    {
+                        case "list":
+                            Utility.WriteLineColor("Currently connected sockets", ConsoleColor.White);
+                            foreach (var clientid in Server.clients)
                             {
-                                Server.clients[result].Kick(Utility.GetReason(kickreason));
+                                Console.WriteLine($"ID: {clientid.Value.clientID} Name: {clientid.Value.GetName()}");
                             }
-                        }
-                        break;
-                    default:
-                        Utility.WriteLineColor("Unknown command.", ConsoleColor.Red);
-                        break;
+                            break;
+                        case "kick":
+                            if (cmd.Length > 2 && uint.TryParse(cmd[1], out uint result) && uint.TryParse(cmd[2], out uint kickreason))
+                            {
+                                if (Server.clients.ContainsKey(result))
+                                {
+                                    Server.clients[result].Kick(Utility.GetReason(kickreason));
+                                }
+                            }
+                            break;
+                        default:
+                            Utility.WriteLineColor("Unknown command.", ConsoleColor.Red);
+                            break;
+                    }
                 }
+            }catch(Exception ex)
+            {
+                Log.Error("Failed to execute command. Error: " + ex.ToString());
             }
         }
     }
