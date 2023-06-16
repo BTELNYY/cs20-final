@@ -56,6 +56,10 @@ public class Program
             port = result;
         }
         Console.WriteLine($"Connecting to {host}:{port} with name {name}");
+        if (args.Contains("--ping"))
+        {
+            StaticClient.SendPingPackets = true;
+        }
         StaticClient.Host = host;
         StaticClient.Port = port;
         StaticClient.PlayerName = name;

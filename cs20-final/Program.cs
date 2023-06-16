@@ -10,6 +10,7 @@ public class Program
 {
     //http://csharp.net-informations.com/communications/csharp-multi-threaded-server-socket.htm
     public static string Version { get; } = "1.0.0";
+
     public static void Main(string[] args)
     {
         Client.PlayerConnected += EventHandler.OnJoin;

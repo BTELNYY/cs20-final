@@ -32,7 +32,7 @@ namespace cs20_final
                             {
                                 Console.WriteLine($"ID: {clientid.Value.clientID} Name: {clientid.Value.GetName()}");
                             }
-                            break;
+                            continue;
                         case "kick":
                             if (cmd.Length > 2 && uint.TryParse(cmd[1], out uint result) && uint.TryParse(cmd[2], out uint kickreason))
                             {
@@ -41,10 +41,10 @@ namespace cs20_final
                                     Server.clients[result].Kick(Utility.GetReason(kickreason));
                                 }
                             }
-                            break;
+                            continue;
                         default:
                             Utility.WriteLineColor("Unknown command.", ConsoleColor.Red);
-                            break;
+                            continue;
                     }
                 }
             }catch(Exception ex)

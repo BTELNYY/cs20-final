@@ -20,6 +20,7 @@ namespace cs20_final_client_test
         public static string Host = "127.0.0.1";
         public static int Port = 8888;
         public static string PlayerName = "Player";
+        public static bool SendPingPackets = false;
 
         public static void Init()
         {
@@ -40,7 +41,10 @@ namespace cs20_final_client_test
             }
             try
             {
-                pingThread.Start();
+                if (SendPingPackets)
+                {
+                    pingThread.Start();
+                }
                 while (true)
                 {
                     NetworkStream networkStream = clientSocket.GetStream();

@@ -138,8 +138,12 @@ namespace cs20_final
             }
             Server.clients.Remove(clientID);
             clientSocket = null;
-            tokenSource.Cancel();
-            clientThread.Join();
+            if(tokenSource == null || clientThread == null)
+            {
+                Log.Error("Token source or client thread are null!");
+                return;
+            }
+            Log.Debug("Clearing threads...");
             tokenSource.Cancel();
         }
 
