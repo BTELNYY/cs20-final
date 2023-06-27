@@ -12,4 +12,4 @@ A Client-Server chat program. imagine discord but bad, and websockets
 # Not bugs
 * Client crashes when the server disconnects it
 * Miscolored text in server console
-* You cannot run multipleservers on the same IP/port
+* You cannot run multiple servers on the same IP/port
